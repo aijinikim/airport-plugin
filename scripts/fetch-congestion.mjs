@@ -13,7 +13,7 @@
  *   node fetch-congestion.mjs --tomorrow # 내일
  *   node fetch-congestion.mjs --file 응답.json   # 키 없이 저장된 응답으로 계산만
  *
- * 출력(stdout): JSON 한 줄 — { ok, date, t1:[…], t2:[…], message } 또는 { ok:false, error }
+ * 출력(stdout): JSON 한 줄 — { ok, date, t1:[…], t2:[…], message, hours:[{time,t1,t2}…], total:{t1,t2} } 또는 { ok:false, error }
  * 키는 환경변수 DATA_GO_KR_KEY 에서만 읽고, 어디에도 찍지 않는다.
  *
  * 활용가이드 V5.0(2025-10-30) 기준: 갱신 5분 · 응답 25행(24개 시간대 + 「합계」) ·
@@ -110,4 +110,8 @@ const message = [
   '※ 실측이 아닌 예상치 (인천국제공항공사)',
 ].join('\n')
 
-out({ ok: true, date, t1, t2, message })
+// 「밤 10시는?」「하루 몇 명?」 같은 질문에 답하려고 시간대 전체와 하루 합계도 같이 낸다(카톡 message 는 그대로)
+const hours = items.map((it) => ({ time: it.atime.replace('_', '~') + '시', t1: num(it.t1dgsum1), t2: num(it.t2dgsum2) }))
+const total = { t1: hours.reduce((a, h) => a + h.t1, 0), t2: hours.reduce((a, h) => a + h.t2, 0) }
+
+out({ ok: true, date, t1, t2, message, hours, total })
