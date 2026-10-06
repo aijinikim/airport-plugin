@@ -15,11 +15,22 @@
  *
  * 출력(stdout): JSON 한 줄 — { ok, date, t1:[…], t2:[…], message } 또는 { ok:false, error }
  * 키는 환경변수 DATA_GO_KR_KEY 에서만 읽고, 어디에도 찍지 않는다.
+ *
+ * 활용가이드 V5.0(2025-10-30) 기준: 갱신 5분 · 응답 25행(24개 시간대 + 「합계」) ·
+ * T1 6번 출국장(t1dg6)은 교통약자 우대 출구라 예상혼잡도 대상이 아니다 — 2026-10-07 실측에서도 늘 0 이었다.
  */
 import { readFileSync } from 'node:fs'
 
 const URL_BASE = 'https://apis.data.go.kr/B551177/passgrAnncmt/getPassgrAnncmt'
 const TOP = 3
+
+// 공공데이터포털 오류 메시지 → 할 일. 출처: 인천국제공항공사 OpenAPI 활용가이드 V5.0 「3-1」
+const PORTAL_ERRORS = {
+  Unauthorized: '키가 없거나 틀렸습니다. 포털 마이페이지의 일반 인증키를 다시 복사해 넣으세요.',
+  Forbidden: '이 API 활용신청이 안 됐거나 승인 전입니다. 신청 직후라면 잠시 뒤 다시 하세요.',
+  'API token quota exceeded': '오늘 호출 한도를 넘었습니다. 한도가 초기화된 뒤 다시 하세요.',
+  'API rate limit exceeded': '지금 요청이 몰렸습니다. 잠시 뒤 다시 하세요.',
+}
 
 function out(obj) {
   process.stdout.write(JSON.stringify(obj) + '\n')
@@ -51,12 +62,20 @@ async function load() {
   try {
     return JSON.parse(text)
   } catch {
-    // 키 오류 등은 JSON 이 아니라 XML 로 온다 — 앞부분만 보여 준다(키는 응답에 없다)
-    out({ ok: false, error: `JSON 이 아닌 응답(HTTP ${res.status}): ${text.slice(0, 200)}` })
+    // 활용가이드 3-1 은 포털 오류가 XML 로만 온다고 적었다. 아는 것은 할 일로 바꿔 알려 준다
+    const hint = Object.entries(PORTAL_ERRORS).find(([k]) => text.includes(k))
+    out({ ok: false, error: hint ? `${hint[0]} — ${hint[1]}` : `JSON 이 아닌 응답(HTTP ${res.status}): ${text.slice(0, 200)}` })
   }
 }
 
 const data = await load()
+
+// 실측(2026-10-07): 등록 안 된 키는 XML 이 아니라 이 JSON 으로 왔다(HTTP 403)
+const portal = data?.OpenAPI_ServiceResponse?.cmmMsgHeader
+if (portal) {
+  const msg = portal.errMsg === 'SERVICE_KEY_IS_NOT_REGISTERED_ERROR' ? PORTAL_ERRORS.Unauthorized : ''
+  out({ ok: false, error: `${portal.returnAuthMsg ?? portal.errMsg} — ${msg || '포털 오류 코드 ' + portal.returnReasonCode}` })
+}
 const header = data?.response?.header
 if (header && header.resultCode !== '00') {
   out({ ok: false, error: `API 오류 ${header.resultCode}: ${header.resultMsg}` })
