@@ -73,7 +73,8 @@ PlayMCP 는 도구함에 담긴 도구만 보여 준다. → https://playmcp.kak
 - ✅ 실제 API 호출(2026-10-07): 오늘·내일 모두 24개 시간대 + 「합계」 행이 왔고, 합계 행은 걸러진다
 - ✅ 실제 응답으로 만든 메시지가 훅을 통과한다
 - ⚠️ 실제 JSON 은 `body.items` 가 바로 배열이다. 포털 Swagger 에는 `items.item` 으로 적혀 있어 둘 다 받게 했다
-- ❓ **카카오톡 실제 전송은 확인 못 했다** (제작 세션에 PlayMCP 카카오톡 도구가 연결돼 있지 않았다)
+- ✅ 카카오톡 실제 전송(2026-10-07, claude.ai PlayMCP 커넥터 경유) — 훅 통과 후 「메시지를 성공적으로 보냈습니다」
+- ⚠️ 다른 플러그인(welfare-plugin 등)도 나챗방 훅을 걸면 서로 막을 수 있다 — 이 훅은 「[인천공항」으로 시작하는 메시지만 검사한다
 
 ```bash
 node scripts/fetch-congestion.mjs --file test/sample-response.json   # 키 없이 계산만 확인
