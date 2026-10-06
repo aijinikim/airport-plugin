@@ -9,10 +9,13 @@ argument-hint: "[오늘 | 내일]"
 ## 1. 숫자를 받는다
 
 인자에 「내일」이 있으면 `--tomorrow` 를 붙인다. 그 밖에는 오늘이다.
+특정 시각을 물었으면 `--hour HH`(24시간제)를 붙인다 — 「오후 3시」→ `--hour 15`, 「밤 10시」→ `--hour 22`.
+오전·오후가 애매하면(「10시」) 사용자에게 묻지 말고 둘 다 터미널에 보여 주되, 카톡에는 더 가까운 미래 시각 하나만 넣는다.
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-congestion.mjs"            # 오늘
 node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-congestion.mjs" --tomorrow # 내일
+node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-congestion.mjs" --tomorrow --hour 15 # 내일 15~16시 포함
 ```
 
 출력은 JSON 한 줄이다.

@@ -11,6 +11,7 @@
  * 사용:
  *   node fetch-congestion.mjs            # 오늘
  *   node fetch-congestion.mjs --tomorrow # 내일
+ *   node fetch-congestion.mjs --hour 15  # 15~16시 블록을 메시지 맨 위에 더한다
  *   node fetch-congestion.mjs --file 응답.json   # 키 없이 저장된 응답으로 계산만
  *
  * 출력(stdout): JSON 한 줄 — { ok, date, t1:[…], t2:[…], message, hours:[{time,t1,t2}…], total:{t1,t2} } 또는 { ok:false, error }
@@ -101,17 +102,27 @@ const t1 = top('t1dgsum1')
 const t2 = top('t2dgsum2')
 const adate = items[0].adate ?? ''
 const date = adate.length === 8 ? `${adate.slice(4, 6)}/${adate.slice(6, 8)}` : adate
+const day = adate.length === 8
+  ? '일월화수목금토'[new Date(Date.UTC(+adate.slice(0, 4), +adate.slice(4, 6) - 1, +adate.slice(6, 8))).getUTCDay()]
+  : ''
 
-const line = (rows) => rows.map((r) => `${r.time} ${r.count.toLocaleString('ko-KR')}명`).join(', ')
-const message = [
-  `[인천공항 출국장 혼잡 예상] ${date}`,
-  `T1: ${line(t1)}`,
-  `T2: ${line(t2)}`,
-  '※ 실측이 아닌 예상치 (인천국제공항공사)',
-].join('\n')
-
-// 「밤 10시는?」「하루 몇 명?」 같은 질문에 답하려고 시간대 전체와 하루 합계도 같이 낸다(카톡 message 는 그대로)
+// 「밤 10시는?」「하루 몇 명?」 같은 질문에 답하려고 시간대 전체와 하루 합계도 같이 낸다
 const hours = items.map((it) => ({ time: it.atime.replace('_', '~') + '시', t1: num(it.t1dgsum1), t2: num(it.t2dgsum2) }))
 const total = { t1: hours.reduce((a, h) => a + h.t1, 0), t2: hours.reduce((a, h) => a + h.t2, 0) }
+
+// --hour 15 → 15~16시 블록을 맨 위에 넣는다(사용자가 특정 시각을 물었을 때)
+const hourIdx = args.indexOf('--hour')
+const asked = hourIdx === -1 ? null : hours.find((h) => h.time.startsWith(String(args[hourIdx + 1]).padStart(2, '0') + '~'))
+
+// 카톡 양식(2026-10-07 사용자 결정): 블록마다 빈 줄, 시간대는 한 줄에 하나. 나챗방 상한 200자 안에 들도록 머리글을 짧게 잡았다
+const fmt = (n) => `${n.toLocaleString('ko-KR')}명`
+const block = (title, rows) => [`■ ${title}`, ...rows].join('\n')
+const message = [
+  `[인천공항 출국장 혼잡 예상]\n${date}(${day}) · 예상치`,
+  ...(asked ? [block(asked.time, [`T1 ${fmt(asked.t1)} · T2 ${fmt(asked.t2)}`])] : []),
+  block('T1 혼잡', t1.map((r) => `${r.time} ${fmt(r.count)}`)),
+  block('T2 혼잡', t2.map((r) => `${r.time} ${fmt(r.count)}`)),
+  block('하루 합계', [`T1 ${fmt(total.t1)} · T2 ${fmt(total.t2)}`]),
+].join('\n\n')
 
 out({ ok: true, date, t1, t2, message, hours, total })
