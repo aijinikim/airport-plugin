@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "airport-plugin",
+  "description": "인천공항 출국장 혼잡 예상 → 카카오톡 전송 플러그인",
+  "owner": {
+    "name": "aijinikim",
+    "url": "https://github.com/aijinikim"
+  },
+  "plugins": [
+    {
+      "name": "airport-plugin",
+      "description": "인천공항 T1·T2 출국장에서 오늘 가장 붐비는 시간대 3개를 카카오톡으로 보냅니다.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

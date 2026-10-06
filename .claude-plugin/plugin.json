@@ -1,0 +1,25 @@
+{
+  "name": "airport-plugin",
+  "description": "인천공항 T1·T2 출국장의 오늘 예상 승객 수를 보고, 가장 붐비는 시간대 3개를 카카오톡 나와의 채팅으로 보냅니다.",
+  "version": "0.1.0",
+  "author": {
+    "name": "aijinikim",
+    "url": "https://github.com/aijinikim"
+  },
+  "keywords": ["airport", "incheon", "congestion", "kakao", "playmcp", "data.go.kr"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*__KakaotalkChat-MemoChat",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-kakao-format.js\"",
+            "timeout": 5,
+            "statusMessage": "카카오톡 메시지 형식 검사 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
