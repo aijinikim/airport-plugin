@@ -24,7 +24,7 @@ T2: 08~09시 3,300명, 09~10시 3,100명, 07~08시 2,800명
 ### 1. 서비스 키 넣기 (공공데이터포털)
 
 1. [공공데이터포털](https://www.data.go.kr/data/15095066/openapi.do)에서 「인천국제공항공사_승객예고-출·입국장별」 **활용신청**
-2. 마이페이지에서 **일반 인증키(Decoding)** 를 복사
+2. 마이페이지에서 **일반 인증키** 를 복사 (Encoding · Decoding 어느 쪽이든 된다)
 3. 환경변수로 넣는다 — `~/.zshrc` 에 한 줄 넣고 터미널을 새로 연다
    ```bash
    export DATA_GO_KR_KEY='여기에-키'
@@ -66,7 +66,10 @@ PlayMCP 는 도구함에 담긴 도구만 보여 준다. → https://playmcp.kak
 - ✅ 키 없이 실행하면 안내 오류로 멈춘다
 - ✅ 가짜 응답(`test/sample-response.json`, Swagger 필드 이름 그대로)으로 상위 3개 계산 · 합계 행 걸러내기
 - ✅ 훅: 정상 메시지 통과 / 꾸민 메시지 차단
-- ❓ **실제 API 응답과 카카오톡 전송은 확인 못 했다** (제작 시점에 키가 없었다). 응답 모양이 다르면 `scripts/fetch-congestion.mjs` 의 필드 이름부터 본다
+- ✅ 실제 API 호출(2026-10-07): 오늘·내일 모두 24개 시간대 + 「합계」 행이 왔고, 합계 행은 걸러진다
+- ✅ 실제 응답으로 만든 메시지가 훅을 통과한다
+- ⚠️ 실제 JSON 은 `body.items` 가 바로 배열이다. 포털 Swagger 에는 `items.item` 으로 적혀 있어 둘 다 받게 했다
+- ❓ **카카오톡 실제 전송은 확인 못 했다** (제작 세션에 PlayMCP 카카오톡 도구가 연결돼 있지 않았다)
 
 ```bash
 node scripts/fetch-congestion.mjs --file test/sample-response.json   # 키 없이 계산만 확인

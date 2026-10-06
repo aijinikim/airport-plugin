@@ -33,12 +33,14 @@ const fileIdx = args.indexOf('--file')
 async function load() {
   if (fileIdx !== -1) return JSON.parse(readFileSync(args[fileIdx + 1], 'utf8'))
 
-  const key = process.env.DATA_GO_KR_KEY
+  // 포털의 Encoding 키(%2F 등)를 넣어도 되게 한 번 풀어 둔다 — 아래 URLSearchParams 가 다시 인코딩한다
+  const rawKey = process.env.DATA_GO_KR_KEY
+  const key = rawKey && rawKey.includes('%') ? decodeURIComponent(rawKey) : rawKey
   if (!key) {
     out({ ok: false, error: '환경변수 DATA_GO_KR_KEY 가 없습니다. README 의 「서비스 키 넣기」를 따라 설정하세요.' })
   }
   const q = new URLSearchParams({
-    serviceKey: key, // 포털이 주는 「일반 인증키(Decoding)」를 넣는다 — URLSearchParams 가 한 번 인코딩한다
+    serviceKey: key,
     numOfRows: '100',
     pageNo: '1',
     selectdate: tomorrow ? '1' : '0',
@@ -60,8 +62,9 @@ if (header && header.resultCode !== '00') {
   out({ ok: false, error: `API 오류 ${header.resultCode}: ${header.resultMsg}` })
 }
 
-// item 이 한 건이면 배열이 아니라 객체로 오는 공공데이터 API 가 많아 둘 다 받는다
-const raw = data?.response?.body?.items?.item ?? []
+// 실제 JSON 응답은 body.items 가 바로 배열이다(2026-10-07 실측). Swagger 는 items.item 으로 적혀 있어 둘 다 받는다
+const itemsNode = data?.response?.body?.items
+const raw = Array.isArray(itemsNode) ? itemsNode : (itemsNode?.item ?? [])
 const items = (Array.isArray(raw) ? raw : [raw])
   // 시간대 행만 쓴다. 합계 같은 다른 행이 섞여 있어도 atime 모양으로 걸러진다
   .filter((it) => /^\d{2}_\d{2}$/.test(it.atime ?? ''))
