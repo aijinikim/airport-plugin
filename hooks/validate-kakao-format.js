@@ -30,6 +30,9 @@ function deny(reason) {
 
 function validate(message) {
   if (typeof message !== 'string' || message.length === 0) deny('message 가 비어 있습니다.')
+  // 이 훅은 나챗방으로 가는 모든 전송에 걸린다 — 다른 플러그인(예: welfare-plugin)의 메시지까지.
+  // 그래서 이 플러그인 메시지(「[인천공항」으로 시작)일 때만 검사한다
+  if (!message.startsWith('[인천공항')) return
   if (!FORMAT.test(message)) deny('메시지가 정해진 4줄 형식(제목 · T1 · T2 · 예상치 안내)과 다릅니다.')
   if (/\*\*|__|`/.test(message)) deny('마크다운 장식(**, __, `)은 쓸 수 없습니다.')
   if (/\p{Extended_Pictographic}/u.test(message)) deny('이모지는 쓸 수 없습니다.')

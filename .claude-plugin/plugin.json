@@ -1,7 +1,7 @@
 {
   "name": "airport-plugin",
   "description": "인천공항 T1·T2 출국장의 오늘 예상 승객 수를 보고, 가장 붐비는 시간대 3개를 카카오톡 나와의 채팅으로 보냅니다.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "aijinikim",
     "url": "https://github.com/aijinikim"
